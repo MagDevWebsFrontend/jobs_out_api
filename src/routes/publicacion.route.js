@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const publicacionController = require('../controllers/publicacion.controller');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, authorize,optionalAuth } = require('../middleware/auth');
 const { validatePublicacion } = require('../middleware/validation.middleware');
 
 // Swagger tags
@@ -12,51 +12,10 @@ const { validatePublicacion } = require('../middleware/validation.middleware');
  *   description: Gestión de publicaciones de trabajos
  */
 
-// Todas las rutas requieren autenticación excepto las de consulta pública
-router.use(authenticate);
 
 /**
  * @swagger
- * /api/publicaciones:
- *   post:
- *     summary: Crear una nueva publicación
- *     tags: [Publicaciones]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - trabajo_id
- *             properties:
- *               trabajo_id:
- *                 type: string
- *                 format: uuid
- *               estado:
- *                 type: string
- *                 enum: [borrador, publicado, archivado]
- *                 default: publicado
- *               imagen_url:
- *                 type: string
- *     responses:
- *       201:
- *         description: Publicación creada exitosamente
- *       400:
- *         description: Datos inválidos
- *       401:
- *         description: No autorizado
- */
-router.post('/', 
-  validatePublicacion.create,
-  publicacionController.crearPublicacion
-);
-
-/**
- * @swagger
- * /api/publicaciones:
+ * /publicaciones:
  *   get:
  *     summary: Obtener todas las publicaciones (pública)
  *     tags: [Publicaciones]
@@ -112,14 +71,58 @@ router.post('/',
  *       200:
  *         description: Lista de publicaciones
  */
-router.get('/', 
-  validatePublicacion.getAll,
-  publicacionController.obtenerPublicaciones
-);
+router.get('/', publicacionController.obtenerPublicaciones );
+
+
+// Todas las rutas requieren autenticación excepto las de consulta pública
+/*
+Todas las rutas denajo de esto necesitaran autenticacion obligatoria */
+router.use(authenticate);
 
 /**
  * @swagger
- * /api/publicaciones/mis-publicaciones:
+ * /publicaciones:
+ *   post:
+ *     summary: Crear una nueva publicación
+ *     tags: [Publicaciones]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - trabajo_id
+ *             properties:
+ *               trabajo_id:
+ *                 type: string
+ *                 format: uuid
+ *               estado:
+ *                 type: string
+ *                 enum: [borrador, publicado, archivado]
+ *                 default: publicado
+ *               imagen_url:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Publicación creada exitosamente
+ *       400:
+ *         description: Datos inválidos
+ *       401:
+ *         description: No autorizado
+ */
+router.post('/', 
+  validatePublicacion.create,
+  publicacionController.crearPublicacion
+);
+
+
+
+/**
+ * @swagger
+ * /publicaciones/mis-publicaciones:
  *   get:
  *     summary: Obtener las publicaciones del usuario autenticado
  *     tags: [Publicaciones]
@@ -145,7 +148,7 @@ router.get('/mis-publicaciones',
 
 /**
  * @swagger
- * /api/publicaciones/{id}:
+ * /publicaciones/{id}:
  *   get:
  *     summary: Obtener una publicación por ID
  *     tags: [Publicaciones]
@@ -170,7 +173,7 @@ router.get('/:id',
 
 /**
  * @swagger
- * /api/publicaciones/{id}:
+ * /publicaciones/{id}:
  *   put:
  *     summary: Actualizar una publicación
  *     tags: [Publicaciones]
@@ -211,7 +214,7 @@ router.put('/:id',
 
 /**
  * @swagger
- * /api/publicaciones/{id}:
+ * /publicaciones/{id}:
  *   delete:
  *     summary: Archivar una publicación
  *     tags: [Publicaciones]
@@ -239,7 +242,7 @@ router.delete('/:id',
 
 /**
  * @swagger
- * /api/publicaciones/republicar:
+ * /publicaciones/republicar:
  *   post:
  *     summary: Republicar un trabajo
  *     tags: [Publicaciones]
@@ -274,7 +277,7 @@ router.post('/republicar',
 
 /**
  * @swagger
- * /api/publicaciones/estadisticas:
+ * /publicaciones/estadisticas:
  *   get:
  *     summary: Obtener estadísticas de publicaciones
  *     tags: [Publicaciones]

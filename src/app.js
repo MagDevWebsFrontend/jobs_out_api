@@ -125,8 +125,8 @@ const authRoutes = require('./routes/auth.route');
 const usuarioRoutes = require('./routes/usuario.route');
 const ubicacionRoutes = require('./routes/ubicacion.route');
 const trabajoRoutes = require('./routes/trabajo.route');
-const publicacionRoutes = require('./routes/publicacion.route'); // ← NUEVA
-const guardadoRoutes = require('./routes/guardado.route');       // ← NUEVA
+const publicacionRoutes = require('./routes/publicacion.route'); 
+const guardadoRoutes = require('./routes/guardado.route');     
 const trabajoContactoRoutes = require('./routes/trabajoContacto.route');
 
 // Usar rutas
@@ -134,8 +134,8 @@ router.use('/auth', authRoutes);
 router.use('/usuarios', usuarioRoutes);
 router.use('/', ubicacionRoutes); // Esto incluye /provincias y /municipios
 router.use('/trabajos', trabajoRoutes);
-router.use('/publicaciones', publicacionRoutes); // ← NUEVA
-router.use('/guardados', guardadoRoutes);       // ← NUEVA
+router.use('/publicaciones', publicacionRoutes);
+router.use('/guardados', guardadoRoutes);
 router.use('/trabajosContacto', trabajoContactoRoutes); // Contactos bajo /trabajos
 
 // Montar todas las rutas bajo el prefijo
