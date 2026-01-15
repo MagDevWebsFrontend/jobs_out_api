@@ -129,18 +129,26 @@ Publicacion.belongsTo(Usuario, {
   as: 'autor'
 });
 
-// Usuario ↔ Guardado (N:M a través de Publicacion)
-Usuario.belongsToMany(Publicacion, {
-  through: Guardado,
+// Reemplazar las relaciones de Guardado (N:M) por estas:
+
+// Usuario ↔ Guardado (1:N)
+Usuario.hasMany(Guardado, {
   foreignKey: 'usuario_id',
-  otherKey: 'publicacion_id',
-  as: 'publicaciones_guardadas'
+  as: 'guardados'
 });
-Publicacion.belongsToMany(Usuario, {
-  through: Guardado,
+Guardado.belongsTo(Usuario, {
+  foreignKey: 'usuario_id',
+  as: 'usuario'
+});
+
+// Publicacion ↔ Guardado (1:N)
+Publicacion.hasMany(Guardado, {
   foreignKey: 'publicacion_id',
-  otherKey: 'usuario_id',
-  as: 'usuarios_que_guardaron'
+  as: 'guardados'
+});
+Guardado.belongsTo(Publicacion, {
+  foreignKey: 'publicacion_id',
+  as: 'publicacion'
 });
 
 // Usuario ↔ Log (1:N)

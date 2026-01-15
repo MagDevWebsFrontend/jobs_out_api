@@ -66,10 +66,11 @@ const optionalAuth = async (req, res, next) => {
       req.user = decoded;
     }
     
-    next();
+    //next();
   } catch (error) {
+    console.log(error);
     // Si el token es inválido, continuar sin autenticación
-    next();
+    //next();
   }
 };
 

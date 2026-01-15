@@ -9,7 +9,7 @@ router.use(authenticate);
 
 /**
  * @swagger
- * /api/guardados:
+ * /guardados:
  *   post:
  *     summary: Guardar una publicación
  *     tags: [Guardados]
@@ -40,7 +40,7 @@ router.post('/',
 
 /**
  * @swagger
- * /api/guardados:
+ * /guardados:
  *   get:
  *     summary: Obtener publicaciones guardadas del usuario
  *     tags: [Guardados]
@@ -70,7 +70,7 @@ router.get('/',
 
 /**
  * @swagger
- * /api/guardados/{id}:
+ * /guardados/{id}:
  *   delete:
  *     summary: Eliminar una publicación de guardados
  *     tags: [Guardados]
@@ -95,7 +95,7 @@ router.delete('/:id',
 
 /**
  * @swagger
- * /api/guardados/{id}/verificar:
+ * /guardados/{id}/verificar:
  *   get:
  *     summary: Verificar si una publicación está guardada
  *     tags: [Guardados]

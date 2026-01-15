@@ -77,7 +77,7 @@ router.get('/', publicacionController.obtenerPublicaciones );
 // Todas las rutas requieren autenticación excepto las de consulta pública
 /*
 Todas las rutas denajo de esto necesitaran autenticacion obligatoria */
-router.use(authenticate);
+//router.use(authenticate);
 
 /**
  * @swagger

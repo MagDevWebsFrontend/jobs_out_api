@@ -17,7 +17,7 @@ router.use(authenticate);
 
 /**
  * @swagger
- * /api/trabajos/{trabajo_id}/contactos:
+ * /trabajos/{trabajo_id}/contactos:
  *   post:
  *     summary: Agregar contacto a un trabajo
  *     tags: [TrabajoContactos]
@@ -58,7 +58,7 @@ router.post('/:trabajo_id/contactos',
 
 /**
  * @swagger
- * /api/trabajos/{trabajo_id}/contactos:
+ * /trabajos/{trabajo_id}/contactos:
  *   get:
  *     summary: Obtener contactos de un trabajo
  *     tags: [TrabajoContactos]
@@ -81,7 +81,7 @@ router.get('/:trabajo_id/contactos',
 
 /**
  * @swagger
- * /api/trabajos/{trabajo_id}/contactos/{tipo}/{valor}:
+ * /trabajos/{trabajo_id}/contactos/{tipo}/{valor}:
  *   put:
  *     summary: Actualizar contacto de un trabajo
  *     tags: [TrabajoContactos]
@@ -126,7 +126,7 @@ router.put('/:trabajo_id/contactos/:tipo/:valor',
 
 /**
  * @swagger
- * /api/trabajos/{trabajo_id}/contactos/{tipo}/{valor}:
+ * /trabajos/{trabajo_id}/contactos/{tipo}/{valor}:
  *   delete:
  *     summary: Eliminar contacto de un trabajo
  *     tags: [TrabajoContactos]
@@ -160,7 +160,7 @@ router.delete('/:trabajo_id/contactos/:tipo/:valor',
 
 /**
  * @swagger
- * /api/contactos/estadisticas:
+ * /contactos/estadisticas:
  *   get:
  *     summary: Obtener estadísticas de contactos
  *     tags: [TrabajoContactos]
