@@ -1,450 +1,229 @@
-const { body, query, param } = require('express-validator');
-const { validate } = require('./validate.middleware');
+const { body, query, param } = require('express-validator')
+const { validate } = require('./validate.middleware')
 
-// =========================
-// Validación de Autenticación
-// =========================
+/* =========================
+   VALIDACIÓN DE AUTH
+========================= */
 const validateAuth = {
   register: [
     body('username')
       .trim()
       .notEmpty().withMessage('El nombre de usuario es requerido')
-      .isLength({ min: 3, max: 50 }).withMessage('El nombre de usuario debe tener entre 3 y 50 caracteres')
-      .matches(/^[a-zA-Z0-9_]+$/).withMessage('Solo se permiten letras, números y guiones bajos'),
-    
+      .isLength({ min: 3, max: 50 })
+      .matches(/^[a-zA-Z0-9_]+$/),
+
     body('email')
       .trim()
-      .notEmpty().withMessage('El email es requerido')
-      .isEmail().withMessage('Debe ser un email válido')
+      .notEmpty()
+      .isEmail()
       .normalizeEmail(),
-    
+
     body('password')
       .trim()
-      .notEmpty().withMessage('La contraseña es requerida')
-      .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
-      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('La contraseña debe contener al menos una mayúscula, una minúscula y un número'),
-    
+      .notEmpty()
+      .isLength({ min: 6 })
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
+
     body('nombre')
       .trim()
-      .notEmpty().withMessage('El nombre es requerido')
-      .isLength({ min: 2, max: 100 }).withMessage('El nombre debe tener entre 2 y 100 caracteres'),
-    
+      .notEmpty()
+      .isLength({ min: 2, max: 100 }),
+
     body('telefono_e164')
       .optional()
       .trim()
-      .matches(/^\+\d{7,15}$/).withMessage('El teléfono debe estar en formato E.164 (ej: +584141234567)'),
-    
+      .matches(/^\+\d{7,15}$/),
+
     body('municipio_id')
       .optional()
-      .isUUID().withMessage('El municipio ID debe ser un UUID válido'),
-    
+      .isUUID(),
+
     body('rol')
       .optional()
-      .isIn(['admin', 'trabajador']).withMessage('Rol inválido. Valores permitidos: admin, trabajador'),
-    
+      .isIn(['admin', 'trabajador']),
+
     validate
   ],
 
   login: [
-    body('username')
-      .trim()
-      .notEmpty().withMessage('El nombre de usuario o email es requerido'),
-    
-    body('password')
-      .trim()
-      .notEmpty().withMessage('La contraseña es requerida'),
-    
+    body('username').notEmpty(),
+    body('password').notEmpty(),
     validate
   ],
 
   refreshToken: [
-    body('refresh_token')
-      .trim()
-      .notEmpty().withMessage('El refresh token es requerido'),
-    
-    validate
-  ],
-
-  changePassword: [
-    body('currentPassword')
-      .trim()
-      .notEmpty().withMessage('La contraseña actual es requerida'),
-    
-    body('newPassword')
-      .trim()
-      .notEmpty().withMessage('La nueva contraseña es requerida')
-      .isLength({ min: 6 }).withMessage('La nueva contraseña debe tener al menos 6 caracteres')
-      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('La nueva contraseña debe contener al menos una mayúscula, una minúscula y un número'),
-    
+    body('refresh_token').notEmpty(),
     validate
   ]
-};
+}
 
-// =========================
-// Validación de Usuarios
-// =========================
+/* =========================
+   VALIDACIÓN DE USUARIO
+========================= */
 const validateUsuario = {
   update: [
-    body('nombre')
-      .optional()
-      .trim()
-      .isLength({ min: 2, max: 100 }).withMessage('El nombre debe tener entre 2 y 100 caracteres'),
-    
-    body('email')
-      .optional()
-      .trim()
-      .isEmail().withMessage('Debe ser un email válido')
-      .normalizeEmail(),
-    
-    body('telefono_e164')
-      .optional()
-      .trim()
-      .matches(/^\+\d{7,15}$/).withMessage('El teléfono debe estar en formato E.164 (ej: +584141234567)'),
-    
-    body('municipio_id')
-      .optional()
-      .isUUID().withMessage('El municipio ID debe ser un UUID válido'),
-    
-    body('avatar_url')
-      .optional()
-      .isURL().withMessage('Debe ser una URL válida'),
-    
-    body('rol')
-      .optional()
-      .isIn(['admin', 'trabajador']).withMessage('Rol inválido'),
-    
+    body('nombre').optional().isLength({ min: 2, max: 100 }),
+    body('email').optional().isEmail(),
+    body('telefono_e164').optional().matches(/^\+\d{7,15}$/),
+    body('municipio_id').optional().isUUID(),
+    body('avatar_url').optional().isString(),
+    body('rol').optional().isIn(['admin', 'trabajador']),
     validate
   ]
-};
+}
 
-// =========================
-// Validación de Trabajos
-// =========================
+/* =========================
+   VALIDACIÓN DE TRABAJOS
+========================= */
 const validateTrabajo = {
   create: [
-    body('titulo')
-      .trim()
-      .notEmpty().withMessage('El título es requerido')
-      .isLength({ min: 3, max: 200 }).withMessage('El título debe tener entre 3 y 200 caracteres'),
-    
-    body('descripcion')
-      .trim()
-      .notEmpty().withMessage('La descripción es requerida')
-      .isLength({ min: 10, max: 5000 }).withMessage('La descripción debe tener entre 10 y 5000 caracteres'),
-    
+    body('titulo').notEmpty().isLength({ min: 3, max: 200 }),
+    body('descripcion').notEmpty().isLength({ min: 10, max: 5000 }),
+
     body('estado')
       .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-    
+      .isIn(['borrador', 'publicado', 'archivado']),
+
     body('jornada')
       .optional()
-      .isIn(['completa', 'parcial', 'temporal', 'freelance', 'turnos']).withMessage('Jornada inválida'),
-    
+      .isIn(['tiempo_completo', 'tiempo_parcial', 'por_turnos']),
+
     body('modo')
       .optional()
-      .isIn(['presencial', 'remoto', 'hibrido']).withMessage('Modo inválido'),
-    
+      .isIn(['presencial', 'remoto', 'hibrido']),
+
     body('experiencia_min')
       .optional()
-      .isInt({ min: 0, max: 10 }).withMessage('La experiencia mínima debe ser entre 0 y 10 años'),
-    
+      .isInt({ min: 0, max: 10 }),
+
     body('salario_min')
       .optional()
-      .isFloat({ min: 0 }).withMessage('El salario mínimo debe ser un número positivo'),
-    
+      .isFloat({ min: 0 }),
+
     body('salario_max')
       .optional()
-      .isFloat({ min: 0 }).withMessage('El salario máximo debe ser un número positivo'),
-    
+      .isFloat({ min: 0 }),
+
     body('municipio_id')
       .optional()
-      .isUUID().withMessage('El municipio ID debe ser un UUID válido'),
-    
+      .isUUID(),
+
     body('beneficios')
       .optional()
-      .isArray().withMessage('Los beneficios deben ser un array'),
-    
+      .isArray(),
+
     body('contactos')
       .optional()
-      .isArray().withMessage('Los contactos deben ser un array'),
-    
+      .isArray(),
+
     validate
   ],
 
   update: [
-    body('titulo')
-      .optional()
-      .trim()
-      .isLength({ min: 3, max: 200 }).withMessage('El título debe tener entre 3 y 200 caracteres'),
-    
-    body('descripcion')
-      .optional()
-      .trim()
-      .isLength({ min: 10, max: 5000 }).withMessage('La descripción debe tener entre 10 y 5000 caracteres'),
-    
-    body('estado')
-      .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-    
-    body('jornada')
-      .optional()
-      .isIn(['completa', 'parcial', 'temporal', 'freelance', 'turnos']).withMessage('Jornada inválida'),
-    
-    body('modo')
-      .optional()
-      .isIn(['presencial', 'remoto', 'hibrido']).withMessage('Modo inválido'),
-    
-    body('experiencia_min')
-      .optional()
-      .isInt({ min: 0, max: 10 }).withMessage('La experiencia mínima debe ser entre 0 y 10 años'),
-    
-    body('salario_min')
-      .optional()
-      .isFloat({ min: 0 }).withMessage('El salario mínimo debe ser un número positivo'),
-    
-    body('salario_max')
-      .optional()
-      .isFloat({ min: 0 }).withMessage('El salario máximo debe ser un número positivo'),
-    
-    body('municipio_id')
-      .optional()
-      .isUUID().withMessage('El municipio ID debe ser un UUID válido'),
-    
-    body('beneficios')
-      .optional()
-      .isArray().withMessage('Los beneficios deben ser un array'),
-    
-    validate
-  ],
-
-  contacto: [
-    body('tipo')
-      .notEmpty().withMessage('El tipo de contacto es requerido')
-      .isIn(['telefono', 'whatsapp', 'email', 'sitio_web']).withMessage('Tipo de contacto inválido'),
-    
-    body('valor')
-      .trim()
-      .notEmpty().withMessage('El valor del contacto es requerido')
-      .isLength({ min: 3, max: 255 }).withMessage('El valor debe tener entre 3 y 255 caracteres'),
-    
-    validate
-  ],
-
-  getAll: [
-    query('page')
-      .optional()
-      .isInt({ min: 1 }).withMessage('La página debe ser un número mayor que 0')
-      .toInt(),
-    
-    query('limit')
-      .optional()
-      .isInt({ min: 1, max: 100 }).withMessage('El límite debe ser entre 1 y 100')
-      .toInt(),
-    
-    query('search')
-      .optional()
-      .trim()
-      .isLength({ min: 2 }).withMessage('La búsqueda debe tener al menos 2 caracteres'),
-    
-    query('estado')
-      .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-    
-    query('jornada')
-      .optional()
-      .isIn(['completa', 'parcial', 'temporal', 'freelance', 'turnos']).withMessage('Jornada inválida'),
-    
-    query('modo')
-      .optional()
-      .isIn(['presencial', 'remoto', 'hibrido']).withMessage('Modo inválido'),
-    
-    query('municipio_id')
-      .optional()
-      .isUUID().withMessage('El municipio ID debe ser un UUID válido'),
-    
-    query('provincia_id')
-      .optional()
-      .isUUID().withMessage('El provincia ID debe ser un UUID válido'),
-    
-    query('experiencia_min')
-      .optional()
-      .isInt({ min: 0, max: 10 }).withMessage('La experiencia mínima debe ser entre 0 y 10 años'),
-    
-    validate
-  ],
-
-  getById: [
-    param('id')
-      .isUUID().withMessage('El ID debe ser un UUID válido'),
-    
+    body('titulo').optional().isLength({ min: 3, max: 200 }),
+    body('descripcion').optional().isLength({ min: 10, max: 5000 }),
+    body('estado').optional().isIn(['borrador', 'publicado', 'archivado']),
+    body('jornada').optional().isIn(['tiempo_completo', 'tiempo_parcial', 'por_turnos']),
+    body('modo').optional().isIn(['presencial', 'remoto', 'hibrido']),
+    body('experiencia_min').optional().isInt({ min: 0, max: 10 }),
+    body('salario_min').optional().isFloat({ min: 0 }),
+    body('salario_max').optional().isFloat({ min: 0 }),
+    body('municipio_id').optional().isUUID(),
+    body('beneficios').optional().isArray(),
     validate
   ]
-};
+}
 
+/* =========================
+   VALIDACIÓN DE CONTACTO
+========================= */
+const validateContacto = [
+  body('tipo')
+    .notEmpty()
+    .isIn(['telefono', 'whatsapp', 'email', 'sitio_web']),
+
+  body('valor')
+    .trim()
+    .notEmpty()
+    .isLength({ min: 3, max: 255 }),
+
+  validate
+]
+
+/* =========================
+   VALIDACIÓN DE PUBLICACIONES
+========================= */
 const validatePublicacion = {
-  // Crear publicación
   create: [
-    body('trabajo_id')
-      .notEmpty().withMessage('El ID del trabajo es requerido')
-      .isUUID().withMessage('El ID del trabajo debe ser un UUID válido'),
-    
+    body('trabajo_id').notEmpty().isUUID(),
+
     body('estado')
       .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido. Valores permitidos: borrador, publicado, archivado')
-      .default('publicado'),
-    
+      .isIn(['borrador', 'publicado', 'archivado']),
+
     body('imagen_url')
       .optional()
-      .trim()
-      .isURL().withMessage('Debe ser una URL válida')
-      .custom((value) => {
-        if (value && !value.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-          throw new Error('La URL debe apuntar a una imagen válida (jpg, jpeg, png, gif, webp)');
+      .custom(value => {
+        if (!value.startsWith('/uploads/')) {
+          throw new Error('Ruta de imagen inválida')
         }
-        return true;
+        return true
       }),
-    
+
     validate
   ],
 
-  // Actualizar publicación
-  update: [
-    param('id')
-      .isUUID().withMessage('El ID debe ser un UUID válido'),
-    
-    body('estado')
-      .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-    
-    body('imagen_url')
-      .optional()
-      .trim()
-      .isURL().withMessage('Debe ser una URL válida')
-      .custom((value) => {
-        if (value && !value.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-          throw new Error('La URL debe apuntar a una imagen válida');
-        }
-        return true;
-      }),
-    
-    body()
-      .custom((value, { req }) => {
-        // Verificar que al menos un campo esté presente para actualizar
-        const { estado, imagen_url } = req.body;
-        if (!estado && !imagen_url) {
-          throw new Error('Debe proporcionar al menos un campo para actualizar: estado o imagen_url');
-        }
-        return true;
-      }),
-    
-    validate
-  ],
-
-  // Republicar trabajo
-  republicar: [
-    body('trabajo_id')
-      .notEmpty().withMessage('El ID del trabajo es requerido')
-      .isUUID().withMessage('El ID del trabajo debe ser un UUID válido'),
-    
-    body('imagen_url')
-      .optional()
-      .trim()
-      .isURL().withMessage('Debe ser una URL válida')
-      .custom((value) => {
-        if (value && !value.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-          throw new Error('La URL debe apuntar a una imagen válida');
-        }
-        return true;
-      }),
-    
-    validate
-  ],
-
-  // Obtener todas las publicaciones (con filtros)
   getAll: [
-    query('estado')
-      .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-    
-    query('municipio_id')
-      .optional()
-      .isUUID().withMessage('El municipio ID debe ser un UUID válido'),
-    
-    query('provincia_id')
-      .optional()
-      .isUUID().withMessage('La provincia ID debe ser un UUID válido'),
-    
-    query('modo')
-      .optional()
-      .isIn(['presencial', 'remoto', 'hibrido']).withMessage('Modo inválido. Valores permitidos: presencial, remoto, hibrido'),
-    
-    query('jornada')
-      .optional()
-      .isIn(['tiempo_completo', 'tiempo_parcial', 'por_turnos']).withMessage('Jornada inválida. Valores permitidos: tiempo_completo, tiempo_parcial, por_turnos'),
-    
-    query('busqueda')
-      .optional()
-      .trim()
-      .isLength({ min: 2 }).withMessage('La búsqueda debe tener al menos 2 caracteres'),
-    
-    query('limit')
-      .optional()
-      .isInt({ min: 1, max: 100 }).withMessage('El límite debe ser entre 1 y 100')
-      .toInt()
-      .default(50),
-    
-    query('offset')
-      .optional()
-      .isInt({ min: 0 }).withMessage('El offset debe ser 0 o mayor')
-      .toInt()
-      .default(0),
-    
-    query('orden')
-      .optional()
-      .isIn(['mas_reciente', 'mas_antiguo', 'mas_guardado']).withMessage('Orden inválido. Valores permitidos: mas_reciente, mas_antiguo, mas_guardado'),
-    
+    query('estado').optional().isIn(['borrador', 'publicado', 'archivado']),
+    query('municipio_id').optional().isUUID(),
+    query('provincia_id').optional().isUUID(),
+    query('modo').optional().isIn(['presencial', 'remoto', 'hibrido']),
+    query('jornada').optional().isIn(['tiempo_completo', 'tiempo_parcial', 'por_turnos']),
+    query('busqueda').optional().isLength({ min: 2 }),
+    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query('offset').optional().isInt({ min: 0 }).toInt(),
     validate
   ],
 
-  // Obtener publicación por ID
-  getById: [
-    param('id')
-      .isUUID().withMessage('El ID debe ser un UUID válido'),
-    
-    validate
-  ],
-
-  // Obtener publicaciones del usuario autenticado
   getMisPublicaciones: [
-    query('estado')
-      .optional()
-      .isIn(['borrador', 'publicado', 'archivado']).withMessage('Estado inválido'),
-    
-    query('limit')
-      .optional()
-      .isInt({ min: 1, max: 100 }).withMessage('El límite debe ser entre 1 y 100')
-      .toInt(),
-    
-    query('offset')
-      .optional()
-      .isInt({ min: 0 }).withMessage('El offset debe ser 0 o mayor')
-      .toInt(),
-    
+    query('estado').optional().isIn(['borrador', 'publicado', 'archivado']),
+    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query('offset').optional().isInt({ min: 0 }).toInt(),
     validate
   ],
 
-  // Eliminar/archivar publicación
-  delete: [
-    param('id')
-      .isUUID().withMessage('El ID debe ser un UUID válido'),
-    
+  getById: [
+    param('id').isUUID(),
     validate
-  ]
-};
+  ],
 
-// =========================
-// Validación de Guardados
-// =========================
+  delete: [
+    param('id').isUUID(),
+    validate
+  ],
+
+  update: [
+  param('id').isUUID(),
+
+  body('estado')
+    .optional()
+    .isIn(['borrador', 'publicado', 'archivado']),
+
+  body('imagen_url')
+    .optional()
+    .custom(value => {
+      if (!value.startsWith('/uploads/')) {
+        throw new Error('Ruta de imagen inválida')
+      }
+      return true
+    }),
+
+  validate
+]
+
+}
+
+
 const validateGuardado = {
   create: [
     body('publicacion_id')
@@ -476,14 +255,14 @@ const validateGuardado = {
   ]
 };
 
-
-// =========================
-// Exportar todas las validaciones
-// =========================
+/* =========================
+   EXPORTS
+========================= */
 module.exports = {
   validateAuth,
   validateUsuario,
   validateTrabajo,
   validatePublicacion,
+  validateContacto,
   validateGuardado
-};
+}

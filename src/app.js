@@ -11,6 +11,12 @@ const swaggerSpec = require('./config/swaggerConfig');
 const app = express();
 
 // =========================
+// Servir archivos estáticos
+// =========================
+const path = require('path');
+app.use('/uploads', express.static(path.join(process.cwd(), 'src', 'public', 'uploads')));
+
+// =========================
 // Configuración de Rate Limiting
 // =========================
 const limiter = rateLimit({
@@ -88,10 +94,7 @@ app.use(express.urlencoded({
 // Aplicar rate limiting a todas las rutas API
 app.use('/api', limiter);
 
-// =========================
-// Servir archivos estáticos
-// =========================
-app.use('/uploads', express.static('public/uploads'));
+
 
 // =========================
 // Documentación Swagger
@@ -128,6 +131,7 @@ const trabajoRoutes = require('./routes/trabajo.route');
 const publicacionRoutes = require('./routes/publicacion.route'); 
 const guardadoRoutes = require('./routes/guardado.route');     
 const trabajoContactoRoutes = require('./routes/trabajoContacto.route');
+const uploadsRoutes = require('./routes/uploads.routes')
 
 // Usar rutas
 router.use('/auth', authRoutes);
@@ -137,6 +141,7 @@ router.use('/trabajos', trabajoRoutes);
 router.use('/publicaciones', publicacionRoutes);
 router.use('/guardados', guardadoRoutes);
 router.use('/trabajosContacto', trabajoContactoRoutes); // Contactos bajo /trabajos
+router.use('/publicaciones', uploadsRoutes)
 
 // Montar todas las rutas bajo el prefijo
 app.use(apiPrefix, router);

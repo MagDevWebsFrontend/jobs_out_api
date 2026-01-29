@@ -228,6 +228,26 @@ class PublicacionService {
         throw new AppError('Publicación no encontrada o no autorizada', 404);
       }
 
+      //
+      // Importa util al tope del archivo:
+      const path = require('path')
+      const { removeFileIfExists, removeDirIfEmpty } = require('../utils/file.utils')
+
+      /* Dentro de eliminarPublicacion, antes de setear estado=archivado: */
+      if (publicacion.imagen_url) {
+        // imagen_url ejemplo: /uploads/publicaciones/<trabajoId>/<filename>
+        // construir ruta FS
+        const parts = publicacion.imagen_url.split('/').filter(Boolean)
+        // buscar la ruta relativa dentro de public/
+        const filename = parts.pop()
+        const folder = parts.join('/') // uploads/publicaciones/<trabajoId>
+        const fsPath = path.join(process.cwd(), folder, filename)
+        removeFileIfExists(fsPath)
+        // intentar borrar carpeta si quedó vacía
+        removeDirIfEmpty(path.join(process.cwd(), parts.join('/')))
+      }
+
+
       // Cambiar estado a archivado en lugar de eliminar
       await publicacion.update({ estado: 'archivado' });
       

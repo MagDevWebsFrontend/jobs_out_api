@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const trabajoContactoController = require('../controllers/trabajoContacto.controller');
 const { authenticate } = require('../middleware/auth');
-const { validateTrabajo } = require('../middleware/validation.middleware');
+const { validateContacto } = require('../middleware/validation.middleware');
 
 // Todas las rutas requieren autenticación
 router.use(authenticate);
@@ -52,7 +52,7 @@ router.use(authenticate);
  *         description: Contacto agregado exitosamente
  */
 router.post('/:trabajo_id/contactos', 
-  validateTrabajo.contacto,
+  validateContacto,
   trabajoContactoController.agregarContacto
 );
 

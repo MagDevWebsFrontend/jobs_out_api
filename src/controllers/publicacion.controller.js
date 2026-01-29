@@ -1,17 +1,19 @@
+const {
+  serializePublicacion,
+  serializePublicaciones
+} = require('../utils/publicacion.serializer');
+
 const publicacionService = require('../services/service.publicacion');
 const AppError = require('../errors/AppError');
 const logger = require('../utils/logger');
 
 class PublicacionController {
-  /**
-   * Crear una nueva publicación
-   */
+
   async crearPublicacion(req, res, next) {
     try {
       const { trabajo_id, estado, imagen_url } = req.body;
-      const usuario_id = req.user.id; // Del middleware de autenticación
+      const usuario_id = req.user.id;
 
-      // Validación básica
       if (!trabajo_id) {
         throw new AppError('El ID del trabajo es requerido', 400);
       }
@@ -21,66 +23,36 @@ class PublicacionController {
         usuario_id
       );
 
-      // Registrar en logs
       logger.info(`Publicación creada: ${publicacion.id} por usuario: ${usuario_id}`);
 
       res.status(201).json({
         success: true,
         message: 'Publicación creada exitosamente',
-        data: publicacion
+        data: serializePublicacion(req, publicacion)
       });
     } catch (error) {
       next(error);
     }
   }
 
-  /**
-   * Obtener todas las publicaciones (con filtros)
-   */
   async obtenerPublicaciones(req, res, next) {
     try {
-      const {
-        estado,
-        municipio_id,
-        provincia_id,
-        modo,
-        jornada,
-        busqueda,
-        limit = 50,
-        offset = 0
-      } = req.query;
-
       const filtros = {
-        estado,
-        municipio_id,
-        provincia_id,
-        modo,
-        jornada,
-        busqueda,
-        limit: parseInt(limit),
-        offset: parseInt(offset)
+        ...req.query,
+        limit: parseInt(req.query.limit || 50),
+        offset: parseInt(req.query.offset || 0)
       };
-
-      // Limpiar filtros undefined
-      Object.keys(filtros).forEach(key => {
-        if (filtros[key] === undefined) {
-          delete filtros[key];
-        }
-      });
 
       const publicaciones = await publicacionService.obtenerPublicaciones(filtros);
 
-      // Contar total para paginación
-      const total = publicaciones.length;
-
-      res.status(200).json({
+      res.json({
         success: true,
-        data: publicaciones,
+        data: serializePublicaciones(req, publicaciones),
         pagination: {
-          total,
-          limit: filtros.limit || 50,
-          offset: filtros.offset || 0,
-          hasMore: total === (filtros.limit || 50)
+          total: publicaciones.length,
+          limit: filtros.limit,
+          offset: filtros.offset,
+          hasMore: publicaciones.length === filtros.limit
         }
       });
     } catch (error) {
@@ -88,79 +60,56 @@ class PublicacionController {
     }
   }
 
-  /**
-   * Obtener una publicación por ID
-   */
   async obtenerPublicacionPorId(req, res, next) {
     try {
       const { id } = req.params;
-      const usuario_id = req.user?.id; // Opcional, para usuarios autenticados
 
-      if (!id) {
-        throw new AppError('ID de publicación es requerido', 400);
-      }
+      const publicacion = await publicacionService.obtenerPublicacionPorId(
+        id,
+        req.user?.id || null
+      );
 
-      const publicacion = await publicacionService.obtenerPublicacionPorId(id, usuario_id);
-
-      res.status(200).json({
+      res.json({
         success: true,
-        data: publicacion
+        data: serializePublicacion(req, publicacion)
       });
     } catch (error) {
       next(error);
     }
   }
 
-  /**
-   * Actualizar una publicación
-   */
   async actualizarPublicacion(req, res, next) {
     try {
       const { id } = req.params;
-      const datos = req.body;
-      const usuario_id = req.user.id;
-
-      if (!id) {
-        throw new AppError('ID de publicación es requerido', 400);
-      }
 
       const publicacion = await publicacionService.actualizarPublicacion(
         id,
-        datos,
-        usuario_id
+        req.body,
+        req.user.id
       );
 
-      // Registrar en logs
-      logger.info(`Publicación actualizada: ${id} por usuario: ${usuario_id}`);
+      logger.info(`Publicación actualizada: ${id}`);
 
-      res.status(200).json({
+      res.json({
         success: true,
         message: 'Publicación actualizada exitosamente',
-        data: publicacion
+        data: serializePublicacion(req, publicacion)
       });
     } catch (error) {
       next(error);
     }
   }
 
-  /**
-   * Eliminar/archivar una publicación
-   */
   async eliminarPublicacion(req, res, next) {
     try {
       const { id } = req.params;
-      const usuario_id = req.user.id;
 
-      if (!id) {
-        throw new AppError('ID de publicación es requerido', 400);
-      }
+      const resultado = await publicacionService.eliminarPublicacion(
+        id,
+        req.user.id
+      );
 
-      const resultado = await publicacionService.eliminarPublicacion(id, usuario_id);
-
-      // Registrar en logs
-      logger.info(`Publicación archivada: ${id} por usuario: ${usuario_id}`);
-
-      res.status(200).json({
+      res.json({
         success: true,
         message: resultado.mensaje
       });
@@ -169,25 +118,16 @@ class PublicacionController {
     }
   }
 
-  /**
-   * Obtener publicaciones del usuario autenticado
-   */
   async obtenerMisPublicaciones(req, res, next) {
     try {
-      const { estado } = req.query;
-      const usuario_id = req.user.id;
-
-      const filtros = {};
-      if (estado) filtros.estado = estado;
-
       const publicaciones = await publicacionService.obtenerPublicacionesPorUsuario(
-        usuario_id,
-        filtros
+        req.user.id,
+        req.query
       );
 
-      res.status(200).json({
+      res.json({
         success: true,
-        data: publicaciones,
+        data: serializePublicaciones(req, publicaciones),
         total: publicaciones.length
       });
     } catch (error) {
@@ -195,48 +135,33 @@ class PublicacionController {
     }
   }
 
-  /**
-   * Republicar un trabajo
-   */
   async republicarTrabajo(req, res, next) {
     try {
-      const { trabajo_id } = req.body;
-      const { imagen_url } = req.body;
-      const usuario_id = req.user.id;
-
-      if (!trabajo_id) {
-        throw new AppError('ID del trabajo es requerido', 400);
-      }
+      const { trabajo_id, imagen_url } = req.body;
 
       const publicacion = await publicacionService.republicarTrabajo(
         trabajo_id,
-        usuario_id,
+        req.user.id,
         imagen_url
       );
-
-      // Registrar en logs
-      logger.info(`Trabajo republicado: ${trabajo_id} por usuario: ${usuario_id}`);
 
       res.status(201).json({
         success: true,
         message: 'Trabajo republicado exitosamente',
-        data: publicacion
+        data: serializePublicacion(req, publicacion)
       });
     } catch (error) {
       next(error);
     }
   }
 
-  /**
-   * Obtener estadísticas de publicaciones
-   */
   async obtenerEstadisticas(req, res, next) {
     try {
-      const usuario_id = req.user?.id; // Opcional, admin puede ver todas
-      
-      const estadisticas = await publicacionService.obtenerEstadisticas(usuario_id);
+      const estadisticas = await publicacionService.obtenerEstadisticas(
+        req.user?.id || null
+      );
 
-      res.status(200).json({
+      res.json({
         success: true,
         data: estadisticas
       });

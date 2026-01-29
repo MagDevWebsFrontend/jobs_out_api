@@ -59,20 +59,20 @@ const authorize = (...roles) => {
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
       const decoded = JWTUtil.verifyToken(token);
       req.user = decoded;
     }
-    
-    //next();
+
+    return next(); // ✅ SIEMPRE continuar
   } catch (error) {
-    console.log(error);
-    // Si el token es inválido, continuar sin autenticación
-    //next();
+    // Token inválido → seguimos SIN usuario
+    return next(); // ✅ NUNCA bloquear
   }
 };
+
 
 module.exports = {
   authenticate,

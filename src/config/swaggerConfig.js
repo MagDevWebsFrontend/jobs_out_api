@@ -246,6 +246,41 @@ const options = {
             }
           }
         },
+        ImageUploadResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true
+            },
+            message: {
+              type: 'string',
+              example: 'Imagen subida'
+            },
+            data: {
+              type: 'object',
+              properties: {
+                filename: {
+                  type: 'string',
+                  example: 'imagen-1234567890.jpg'
+                },
+                size: {
+                  type: 'integer',
+                  example: 1024567
+                },
+                mimetype: {
+                  type: 'string',
+                  example: 'image/jpeg'
+                },
+                url: {
+                  type: 'string',
+                  format: 'uri',
+                  example: '/uploads/publicaciones/123e4567-e89b-12d3-a456-426614174000/imagen-1234567890.jpg'
+                }
+              }
+            }
+          }
+        },
         TrabajoContacto: {
           type: 'object',
           required: ['tipo', 'valor'],

@@ -114,6 +114,7 @@ Todas las rutas denajo de esto necesitaran autenticacion obligatoria */
  *         description: No autorizado
  */
 router.post('/', 
+  authenticate,
   validatePublicacion.create,
   publicacionController.crearPublicacion
 );
@@ -141,7 +142,8 @@ router.post('/',
  *       401:
  *         description: No autorizado
  */
-router.get('/mis-publicaciones', 
+router.get('/mis-publicaciones',
+  authenticate, 
   validatePublicacion.getMisPublicaciones,
   publicacionController.obtenerMisPublicaciones
 );
@@ -208,6 +210,7 @@ router.get('/:id',
  *         description: Publicación no encontrada
  */
 router.put('/:id', 
+  authenticate,
   validatePublicacion.update,
   publicacionController.actualizarPublicacion
 );
@@ -236,6 +239,7 @@ router.put('/:id',
  *         description: Publicación no encontrada
  */
 router.delete('/:id', 
+  authenticate,
   validatePublicacion.delete,
   publicacionController.eliminarPublicacion
 );
@@ -271,7 +275,8 @@ router.delete('/:id',
  *         description: No autorizado
  */
 router.post('/republicar', 
-  validatePublicacion.republicar,
+  authenticate,
+  validatePublicacion.create,
   publicacionController.republicarTrabajo
 );
 
