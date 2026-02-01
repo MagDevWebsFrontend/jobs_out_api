@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate, authorize, optionalAuth } = require('../middleware/auth');
 const TrabajoController = require('../controllers/trabajo.controller');
+const dbContext = require('../middleware/dbContext.middleware');
 
 /**
  * @swagger
@@ -118,7 +119,7 @@ router.get('/', optionalAuth, TrabajoController.getAllTrabajos);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/mis-trabajos', authenticate, TrabajoController.getMisTrabajos);
+router.get('/mis-trabajos', authenticate,dbContext, TrabajoController.getMisTrabajos);
 
 /**
  * @swagger
@@ -321,7 +322,7 @@ router.post('/', authenticate, TrabajoController.createTrabajo);
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.put('/:id', authenticate, TrabajoController.updateTrabajo);
+router.put('/:id', authenticate,dbContext, TrabajoController.updateTrabajo);
 
 /**
  * @swagger
@@ -351,7 +352,7 @@ router.put('/:id', authenticate, TrabajoController.updateTrabajo);
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.delete('/:id', authenticate, TrabajoController.deleteTrabajo);
+router.delete('/:id', authenticate,dbContext, TrabajoController.deleteTrabajo);
 
 /**
  * @swagger
@@ -390,7 +391,7 @@ router.delete('/:id', authenticate, TrabajoController.deleteTrabajo);
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.post('/:id/publicar', authenticate, TrabajoController.publicarTrabajo);
+router.post('/:id/publicar', authenticate,dbContext, TrabajoController.publicarTrabajo);
 
 /**
  * @swagger
@@ -427,7 +428,7 @@ router.post('/:id/publicar', authenticate, TrabajoController.publicarTrabajo);
  *       404:
  *         $ref: '#/components/responses/NotFoundError'
  */
-router.post('/:id/archivar', authenticate, TrabajoController.archivarTrabajo);
+router.post('/:id/archivar', authenticate,dbContext, TrabajoController.archivarTrabajo);
 
 /**
  * @swagger
@@ -483,7 +484,7 @@ router.post('/:id/archivar', authenticate, TrabajoController.archivarTrabajo);
  *       409:
  *         description: El contacto ya existe para este trabajo
  */
-router.post('/:id/contactos', authenticate, TrabajoController.agregarContacto);
+router.post('/:id/contactos', authenticate,dbContext, TrabajoController.agregarContacto);
 
 /**
  * @swagger
@@ -528,7 +529,7 @@ router.post('/:id/contactos', authenticate, TrabajoController.agregarContacto);
  *       404:
  *         description: Trabajo o contacto no encontrado
  */
-router.delete('/:id/contactos', authenticate, TrabajoController.eliminarContacto);
+router.delete('/:id/contactos', authenticate,dbContext, TrabajoController.eliminarContacto);
 
 
 

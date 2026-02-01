@@ -1,17 +1,19 @@
-// En src/models/index.js (REEMPLAZAR TODO)
-const sequelize = require('./connection');
-const { DataTypes } = require('sequelize');
+const sequelize = require('./connection')
+const { DataTypes } = require('sequelize')
 
-// Importar modelos
-const Usuario = require('./Usuario');
-const ConfiguracionUsuario = require('./ConfiguracionUsuario');
-const Provincia = require('./Provincia');
-const Municipio = require('./Municipio');
-const Trabajo = require('./Trabajo');
-const TrabajoContacto = require('./TrabajoContacto');
-const Publicacion = require('./Publicacion');
-const Guardado = require('./Guardado');
-const Log = require('./Log');
+// Importar DEFINIDORES
+const Usuario = require('./Usuario')
+const ConfiguracionUsuario = require('./ConfiguracionUsuario')
+const Provincia = require('./Provincia')
+const Municipio = require('./Municipio')
+const Trabajo = require('./Trabajo')
+const TrabajoContacto = require('./TrabajoContacto')
+const Publicacion = require('./Publicacion')
+const Guardado = require('./Guardado')
+const Log = require('./Log')
+
+
+
 
 // Función para probar conexión
 async function testConnection() {
@@ -155,19 +157,20 @@ Guardado.belongsTo(Publicacion, {
 Usuario.hasMany(Log, {
   foreignKey: 'usuario_id',
   as: 'logs'
-});
+})
+
 Log.belongsTo(Usuario, {
   foreignKey: 'usuario_id',
   as: 'usuario'
-});
+})
+
+
 
 // Exportar todo
 module.exports = {
   sequelize,
-  DataTypes,
   testConnection,
   syncDatabase,
-  // Modelos
   Usuario,
   ConfiguracionUsuario,
   Provincia,

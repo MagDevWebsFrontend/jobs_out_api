@@ -1,12 +1,14 @@
-// En src/models/Log.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('./connection');
+// src/models/Log.js
+const { Model, DataTypes } = require('sequelize')
+const sequelize = require('./connection')
 
-const Log = sequelize.define('Log', {
+class Log extends Model {}
+
+Log.init({
   id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4
   },
   usuario_id: {
     type: DataTypes.UUID,
@@ -16,34 +18,20 @@ const Log = sequelize.define('Log', {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  entidad: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  entidad_id: {
-    type: DataTypes.UUID,
-    allowNull: true
-  },
-  detalles: {
-    type: DataTypes.JSONB,
-    allowNull: true
-  },
-  ip: {
-    type: DataTypes.INET,
-    allowNull: true
-  },
-  user_agent: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
+  entidad: DataTypes.TEXT,
+  entidad_id: DataTypes.UUID,
+  detalles: DataTypes.JSONB,
+  ip: DataTypes.INET,
+  user_agent: DataTypes.TEXT,
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }
 }, {
+  sequelize,
   tableName: 'logs',
   timestamps: false,
   underscored: true
-});
+})
 
-module.exports = Log;
+module.exports = Log

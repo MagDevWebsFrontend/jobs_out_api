@@ -3,9 +3,10 @@ const router = express.Router();
 const trabajoContactoController = require('../controllers/trabajoContacto.controller');
 const { authenticate } = require('../middleware/auth');
 const { validateContacto } = require('../middleware/validation.middleware');
+const dbContext = require('../middleware/dbContext.middleware');
 
 // Todas las rutas requieren autenticación
-router.use(authenticate);
+router.use(authenticate,dbContext);
 
 // Swagger tags
 /**

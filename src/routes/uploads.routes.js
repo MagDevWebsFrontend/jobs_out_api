@@ -6,7 +6,7 @@ const upload = require('../middleware/upload.images')
 const TrabajoService = require('../services/service.trabajo')
 const { removeFileIfExists, removeDirIfEmpty } = require('../utils/file.utils')
 const { authenticate } = require('../middleware/auth')
-//const { optionalAuth } = require('../middleware/auth')
+//const { dbContext } = require('../middleware/dbContext.middleware')
 
 const router = express.Router()
 router.use(authenticate);

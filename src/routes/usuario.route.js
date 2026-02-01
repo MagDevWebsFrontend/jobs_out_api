@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const UsuarioController = require('../controllers/usuario.controller');
 const { authenticate, authorize } = require('../middleware/auth');
+const dbContext = require('../middleware/dbContext.middleware')
 
 /**
  * @route /api/usuarios
@@ -71,7 +72,7 @@ router.get('/', authenticate, authorize('admin'), UsuarioController.getAllUsers)
  *       404:
  *         description: Usuario no encontrado
  */
-router.get('/:id', authenticate, UsuarioController.getUserById);
+router.get('/:id', authenticate,dbContext, UsuarioController.getUserById);
 
 /**
  * @swagger
@@ -112,7 +113,7 @@ router.get('/:id', authenticate, UsuarioController.getUserById);
  *       403:
  *         description: No autorizado para modificar este usuario
  */
-router.put('/:id', authenticate, UsuarioController.updateUser);
+router.put('/:id', authenticate,dbContext, UsuarioController.updateUser);
 
 /**
  * @swagger
@@ -135,7 +136,7 @@ router.put('/:id', authenticate, UsuarioController.updateUser);
  *       403:
  *         description: No autorizado para eliminar este usuario
  */
-router.delete('/:id', authenticate, UsuarioController.deleteUser);
+router.delete('/:id', authenticate,dbContext, UsuarioController.deleteUser);
 
 /**
  * @swagger
@@ -186,6 +187,6 @@ router.patch('/:id/restore', authenticate, authorize('admin'), UsuarioController
  *       200:
  *         description: Configuración actualizada
  */
-router.put('/:id/notificaciones', authenticate, UsuarioController.updateNotificationConfig);
+router.put('/:id/notificaciones', authenticate,dbContext, UsuarioController.updateNotificationConfig);
 
 module.exports = router;

@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/auth.controller');
 const { authenticate } = require('../middleware/auth');
+const dbContext = require('../middleware/dbContext.middleware');
 
 /**
  * @swagger
@@ -138,7 +139,7 @@ router.post('/refresh', AuthController.refreshToken);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.get('/me', authenticate, AuthController.getProfile);
+router.get('/me', authenticate,dbContext, AuthController.getProfile);
 
 /**
  * @swagger
@@ -168,7 +169,7 @@ router.get('/me', authenticate, AuthController.getProfile);
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
-router.post('/change-password', authenticate, AuthController.changePassword);
+router.post('/change-password', authenticate,dbContext, AuthController.changePassword);
 
 /**
  * @swagger
@@ -182,6 +183,6 @@ router.post('/change-password', authenticate, AuthController.changePassword);
  *       200:
  *         description: Sesión cerrada
  */
-router.get('/logout', authenticate, AuthController.logout);
+router.get('/logout', authenticate,dbContext, AuthController.logout);
 
 module.exports = router;

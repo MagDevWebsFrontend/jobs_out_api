@@ -8,6 +8,7 @@ const { testConnection } = require('./models');
 const errorHandler = require('./errors/errorHandler');
 const swaggerSpec = require('./config/swaggerConfig');
 
+
 const app = express();
 
 // =========================
@@ -132,6 +133,8 @@ const publicacionRoutes = require('./routes/publicacion.route');
 const guardadoRoutes = require('./routes/guardado.route');     
 const trabajoContactoRoutes = require('./routes/trabajoContacto.route');
 const uploadsRoutes = require('./routes/uploads.routes')
+const logsRoutes = require('./routes/logs.route');
+
 
 // Usar rutas
 router.use('/auth', authRoutes);
@@ -142,6 +145,8 @@ router.use('/publicaciones', publicacionRoutes);
 router.use('/guardados', guardadoRoutes);
 router.use('/trabajosContacto', trabajoContactoRoutes); // Contactos bajo /trabajos
 router.use('/publicaciones', uploadsRoutes)
+
+router.use('/', logsRoutes);
 
 // Montar todas las rutas bajo el prefijo
 app.use(apiPrefix, router);

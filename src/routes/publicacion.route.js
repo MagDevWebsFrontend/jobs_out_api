@@ -3,6 +3,7 @@ const router = express.Router();
 const publicacionController = require('../controllers/publicacion.controller');
 const { authenticate, authorize,optionalAuth } = require('../middleware/auth');
 const { validatePublicacion } = require('../middleware/validation.middleware');
+const dbContext = require('../middleware/dbContext.middleware');
 
 // Swagger tags
 /**
@@ -115,6 +116,7 @@ Todas las rutas denajo de esto necesitaran autenticacion obligatoria */
  */
 router.post('/', 
   authenticate,
+  dbContext,
   validatePublicacion.create,
   publicacionController.crearPublicacion
 );
@@ -144,6 +146,7 @@ router.post('/',
  */
 router.get('/mis-publicaciones',
   authenticate, 
+  dbContext,
   validatePublicacion.getMisPublicaciones,
   publicacionController.obtenerMisPublicaciones
 );
@@ -211,6 +214,7 @@ router.get('/:id',
  */
 router.put('/:id', 
   authenticate,
+  dbContext,
   validatePublicacion.update,
   publicacionController.actualizarPublicacion
 );
@@ -240,6 +244,7 @@ router.put('/:id',
  */
 router.delete('/:id', 
   authenticate,
+  dbContext,
   validatePublicacion.delete,
   publicacionController.eliminarPublicacion
 );
@@ -276,6 +281,7 @@ router.delete('/:id',
  */
 router.post('/republicar', 
   authenticate,
+  dbContext,
   validatePublicacion.create,
   publicacionController.republicarTrabajo
 );

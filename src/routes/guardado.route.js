@@ -3,9 +3,10 @@ const router = express.Router();
 const guardadoController = require('../controllers/guardado.controller');
 const { authenticate } = require('../middleware/auth');
 const { validateGuardado } = require('../middleware/validation.middleware');
+const dbContext = require('../middleware/dbContext.middleware');
 
 // Todas las rutas requieren autenticación
-router.use(authenticate);
+router.use(authenticate,dbContext);
 
 /**
  * @swagger
