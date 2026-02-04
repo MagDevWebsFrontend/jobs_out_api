@@ -2,6 +2,7 @@
 const { Usuario, ConfiguracionUsuario, Municipio, Provincia } = require('../models');
 const AppError = require('../errors/AppError');
 const BcryptUtil = require('../utils/bcrypt');
+const { Op } = require('sequelize');
 
 class UsuarioService {
   /**
@@ -126,7 +127,7 @@ class UsuarioService {
         const existingEmail = await Usuario.findOne({
           where: { 
             email: updateData.email,
-            id: { $ne: userId }
+            id: { [Op.ne]: userId }
           }
         });
 

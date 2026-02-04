@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,6 +10,11 @@ const { testConnection } = require('./models');
 const errorHandler = require('./errors/errorHandler');
 const swaggerSpec = require('./config/swaggerConfig');
 
+// =========================
+// Inicializacion de telegram bot
+// =========================
+require('./services/telegram/telegramBot');
+
 
 const app = express();
 
@@ -15,7 +22,7 @@ const app = express();
 // Servir archivos estáticos
 // =========================
 const path = require('path');
-app.use('/uploads', express.static(path.join(process.cwd(), 'src', 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
 // =========================
 // Configuración de Rate Limiting
@@ -124,6 +131,54 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 const router = express.Router();
 const apiPrefix = process.env.API_PREFIX || '/api';
 
+// Ruta de diagnóstico para verificar rutas de archivos
+app.get('/api/debug/uploads', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  
+  const staticPath = path.join(process.cwd(), 'src', 'public', 'uploads');
+  const publicPath = path.join(process.cwd(), 'public', 'uploads');
+  
+  const paths = {
+    staticPath: {
+      path: staticPath,
+      exists: fs.existsSync(staticPath),
+      isDirectory: fs.existsSync(staticPath) ? fs.statSync(staticPath).isDirectory() : false
+    },
+    publicPath: {
+      path: publicPath,
+      exists: fs.existsSync(publicPath),
+      isDirectory: fs.existsSync(publicPath) ? fs.statSync(publicPath).isDirectory() : false
+    },
+    currentWorkingDir: process.cwd(),
+    environment: process.env.NODE_ENV,
+    uploadPath: process.env.UPLOAD_PATH || 'No configurado'
+  };
+
+  // Intentar listar directorios si existen
+  if (paths.staticPath.exists) {
+    try {
+      paths.staticPath.contents = fs.readdirSync(staticPath);
+    } catch (err) {
+      paths.staticPath.error = err.message;
+    }
+  }
+  
+  if (paths.publicPath.exists) {
+    try {
+      paths.publicPath.contents = fs.readdirSync(publicPath);
+    } catch (err) {
+      paths.publicPath.error = err.message;
+    }
+  }
+
+  res.json({
+    success: true,
+    message: 'Diagnóstico de rutas de uploads',
+    data: paths
+  });
+});
+
 // Importar rutas
 const authRoutes = require('./routes/auth.route');
 const usuarioRoutes = require('./routes/usuario.route');
@@ -134,6 +189,7 @@ const guardadoRoutes = require('./routes/guardado.route');
 const trabajoContactoRoutes = require('./routes/trabajoContacto.route');
 const uploadsRoutes = require('./routes/uploads.routes')
 const logsRoutes = require('./routes/logs.route');
+const adminRoutes = require('./routes/admin.routes');
 
 
 // Usar rutas
@@ -145,8 +201,8 @@ router.use('/publicaciones', publicacionRoutes);
 router.use('/guardados', guardadoRoutes);
 router.use('/trabajosContacto', trabajoContactoRoutes); // Contactos bajo /trabajos
 router.use('/publicaciones', uploadsRoutes)
-
 router.use('/', logsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Montar todas las rutas bajo el prefijo
 app.use(apiPrefix, router);

@@ -1,13 +1,15 @@
+// controllers/telegramController.js
+const { Op } = require('sequelize');
 const telegramBot = require('../services/telegram/telegramBot');
 const { ConfiguracionUsuario, Usuario } = require('../models');
 
 /**
- * Activar notificaciones y generar código
+ * Solicitar activación de notificaciones (genera código)
  */
 exports.activateNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     // Verificar que el bot esté activo
     if (!telegramBot.isBotActive()) {
       return res.status(503).json({
@@ -15,36 +17,34 @@ exports.activateNotifications = async (req, res) => {
         message: 'Servicio de notificaciones no disponible'
       });
     }
-    
+
     // Generar código de verificación
     const code = telegramBot.generateVerificationCode(userId);
-    
-    // Obtener información del usuario
+
+    // Obtener usuario
     const usuario = await Usuario.findByPk(userId, {
       attributes: ['nombre', 'username']
     });
-    
-    // Datos para la respuesta
-    const response = {
+
+    res.json({
       success: true,
       data: {
         code,
         botUsername: telegramBot.getBotUsername(),
         botLink: telegramBot.getBotLink(),
-        instructions: `Envía este código al bot: ${code}`,
+        instructions: `Envía este código al bot de Telegram`,
         usuario: {
-          nombre: usuario.nombre,
-          username: usuario.username
+          nombre: usuario?.nombre || '',
+          username: usuario?.username || ''
         },
         expiresIn: '10 minutos'
       }
-    };
-    
-    console.log(`📱 Código generado para ${usuario.username}: ${code}`);
-    res.json(response);
-    
+    });
+
+    console.log(`📱 Código Telegram generado para user ${userId}: ${code}`);
+
   } catch (error) {
-    console.error('Error activando notificaciones:', error);
+    console.error('❌ Error activando notificaciones Telegram:', error);
     res.status(500).json({
       success: false,
       message: 'Error al activar notificaciones'
@@ -58,27 +58,26 @@ exports.activateNotifications = async (req, res) => {
 exports.deactivateNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Buscar configuración del usuario
+
     const config = await ConfiguracionUsuario.findOne({
       where: { usuario_id: userId }
     });
-    
+
     if (config) {
       config.telegram_notif = false;
       config.telegram_chat_id = null;
       await config.save();
-      
-      console.log(`🔕 Notificaciones desactivadas para usuario ${userId}`);
+
+      console.log(`🔕 Telegram desactivado para usuario ${userId}`);
     }
-    
+
     res.json({
       success: true,
       message: 'Notificaciones desactivadas'
     });
-    
+
   } catch (error) {
-    console.error('Error desactivando notificaciones:', error);
+    console.error('❌ Error desactivando Telegram:', error);
     res.status(500).json({
       success: false,
       message: 'Error al desactivar notificaciones'
@@ -92,36 +91,33 @@ exports.deactivateNotifications = async (req, res) => {
 exports.getStatus = async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Buscar configuración
-    const config = await ConfiguracionUsuario.findOne({
+
+    let config = await ConfiguracionUsuario.findOne({
       where: { usuario_id: userId },
       attributes: ['telegram_notif', 'telegram_chat_id']
     });
-    
-    // Si no existe, crear una por defecto
+
+    // Crear configuración por defecto si no existe
     if (!config) {
-      await ConfiguracionUsuario.create({
+      config = await ConfiguracionUsuario.create({
         usuario_id: userId,
         telegram_notif: false
       });
     }
-    
-    const response = {
+
+    res.json({
       success: true,
       data: {
-        telegram_notif: config ? config.telegram_notif : false,
-        telegram_chat_id: config ? config.telegram_chat_id : null,
+        telegram_notif: config.telegram_notif,
+        telegram_chat_id: config.telegram_chat_id,
         botActive: telegramBot.isBotActive(),
         botUsername: telegramBot.getBotUsername(),
         botLink: telegramBot.getBotLink()
       }
-    };
-    
-    res.json(response);
-    
+    });
+
   } catch (error) {
-    console.error('Error obteniendo estado:', error);
+    console.error('❌ Error obteniendo estado Telegram:', error);
     res.status(500).json({
       success: false,
       message: 'Error al obtener estado'
@@ -135,59 +131,58 @@ exports.getStatus = async (req, res) => {
 exports.sendTestNotification = async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Buscar configuración
+
     const config = await ConfiguracionUsuario.findOne({
-      where: { 
+      where: {
         usuario_id: userId,
         telegram_notif: true,
-        telegram_chat_id: { $ne: null }
+        telegram_chat_id: { [Op.ne]: null }
       }
     });
-    
+
     if (!config) {
       return res.status(400).json({
         success: false,
         message: 'No tienes notificaciones activas'
       });
     }
-    
-    // Obtener información del usuario
+
     const usuario = await Usuario.findByPk(userId, {
       attributes: ['nombre']
     });
-    
-    // Crear mensaje de prueba
+
     const message = `
 🔔 <b>PRUEBA DE NOTIFICACIÓN</b>
 
-Hola <b>${usuario.nombre}</b>,
+Hola <b>${usuario?.nombre || 'usuario'}</b>,
 
-✅ Tu configuración de notificaciones está funcionando correctamente.
+✅ Las notificaciones de Telegram están funcionando correctamente.
 
 📅 Fecha: ${new Date().toLocaleDateString('es-ES')}
 🕒 Hora: ${new Date().toLocaleTimeString('es-ES')}
 
 📍 <i>Jobs Out Cuba</i>
-    `;
-    
-    // Enviar notificación
-    const sent = await telegramBot.sendNotification(config.telegram_chat_id, message);
-    
-    if (sent) {
-      res.json({
-        success: true,
-        message: 'Notificación de prueba enviada'
-      });
-    } else {
-      res.status(500).json({
+`;
+
+    const sent = await telegramBot.sendNotification(
+      config.telegram_chat_id,
+      message
+    );
+
+    if (!sent) {
+      return res.status(500).json({
         success: false,
-        message: 'Error al enviar notificación'
+        message: 'No se pudo enviar la notificación'
       });
     }
-    
+
+    res.json({
+      success: true,
+      message: 'Notificación de prueba enviada'
+    });
+
   } catch (error) {
-    console.error('Error enviando prueba:', error);
+    console.error('❌ Error enviando prueba Telegram:', error);
     res.status(500).json({
       success: false,
       message: 'Error al enviar notificación de prueba'
@@ -196,38 +191,39 @@ Hola <b>${usuario.nombre}</b>,
 };
 
 /**
- * Actualizar configuración de notificaciones
+ * Actualizar configuración (toggle desde frontend)
  */
 exports.updateSettings = async (req, res) => {
   try {
     const userId = req.user.id;
     const { telegram_notif } = req.body;
-    
-    if (telegram_notif === undefined) {
+
+    if (typeof telegram_notif !== 'boolean') {
       return res.status(400).json({
         success: false,
-        message: 'Se requiere el campo telegram_notif'
+        message: 'telegram_notif debe ser boolean'
       });
     }
-    
-    // Buscar o crear configuración
+
     const [config, created] = await ConfiguracionUsuario.findOrCreate({
       where: { usuario_id: userId },
       defaults: { telegram_notif }
     });
-    
+
     if (!created) {
       config.telegram_notif = telegram_notif;
       await config.save();
     }
-    
+
     res.json({
       success: true,
-      message: `Notificaciones ${telegram_notif ? 'activadas' : 'desactivadas'}`
+      message: telegram_notif
+        ? 'Notificaciones activadas'
+        : 'Notificaciones desactivadas'
     });
-    
+
   } catch (error) {
-    console.error('Error actualizando configuración:', error);
+    console.error('❌ Error actualizando configuración Telegram:', error);
     res.status(500).json({
       success: false,
       message: 'Error al actualizar configuración'

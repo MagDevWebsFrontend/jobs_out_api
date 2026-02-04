@@ -253,6 +253,23 @@ class AuthController {
       next(error);
     }
   }
+
+
+  static async checkUsernameAvailability(req, res, next) {
+    try {
+      const { username } = req.query
+      if (!username) {
+        return res.status(400).json({ success: false, message: 'username is required' })
+      }
+      const available = await AuthService.isUsernameAvailable(username)
+      res.json({ success: true, available })
+    } catch (error) {
+      next(error)
+    }
+  }
+
 }
+
+
 
 module.exports = AuthController;

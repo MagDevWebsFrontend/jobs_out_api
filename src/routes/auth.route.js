@@ -61,6 +61,9 @@ const dbContext = require('../middleware/dbContext.middleware');
  */
 router.post('/register', AuthController.register);
 
+
+router.get('/availability', AuthController.checkUsernameAvailability)
+
 /**
  * @swagger
  * /auth/login:

@@ -300,7 +300,7 @@ router.post('/republicar',
  *       401:
  *         description: No autorizado
  */
-router.get('/estadisticas', 
+router.get('/estadisticas',
   publicacionController.obtenerEstadisticas
 );
 

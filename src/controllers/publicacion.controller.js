@@ -156,10 +156,12 @@ class PublicacionController {
   }
 
   async obtenerEstadisticas(req, res, next) {
+    console.log('entro bien al controller')
     try {
       const estadisticas = await publicacionService.obtenerEstadisticas(
         req.user?.id || null
       );
+      console.log(req.user.id)
 
       res.json({
         success: true,

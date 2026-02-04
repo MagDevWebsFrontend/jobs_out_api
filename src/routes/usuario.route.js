@@ -4,6 +4,7 @@ const router = express.Router();
 const UsuarioController = require('../controllers/usuario.controller');
 const { authenticate, authorize } = require('../middleware/auth');
 const dbContext = require('../middleware/dbContext.middleware')
+const telegramService = require('../services/telegram/telegramBot'); // export generateVerificationCode ahí
 
 /**
  * @route /api/usuarios
@@ -189,4 +190,32 @@ router.patch('/:id/restore', authenticate, authorize('admin'), UsuarioController
  */
 router.put('/:id/notificaciones', authenticate,dbContext, UsuarioController.updateNotificationConfig);
 
+/**
+ * POST /api/usuarios/:id/telegram-code
+ * Genera un código de 6 dígitos para vincular Telegram y lo devuelve al usuario autenticado.
+ */
+router.post('/:id/telegram-code', authenticate, dbContext, async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    // solo el propio usuario o admin
+    if (req.user.id !== userId && req.user.rol !== 'admin') {
+      return res.status(403).json({ success: false, message: 'No autorizado' });
+    }
+
+    // Genera código (usa la función exportada de tu servicio de telegram)
+    const code = telegramService.generateVerificationCode(userId);
+
+    // Devuelve el código y el link del bot (FRONTEND mostrará esto al usuario)
+    return res.json({
+      success: true,
+      data: {
+        code,
+        bot_link: telegramService.getBotLink()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 module.exports = router;

@@ -1,7 +1,7 @@
 // En src/services/service.auth.js
 const JWTUtil = require('../utils/jwt');
 const BcryptUtil = require('../utils/bcrypt');
-const { Usuario } = require('../models');
+const { Usuario, sequelize } = require('../models');
 const AppError = require('../errors/AppError');
 
 class AuthService {
@@ -199,6 +199,20 @@ class AuthService {
       throw error;
     }
   }
+
+
+  static async isUsernameAvailable(username) {
+  // Búsqueda case-insensitive
+  const usuario = await Usuario.findOne({
+    where: sequelize.where(
+      sequelize.fn('LOWER', sequelize.col('username')),
+      '=',
+      String(username).toLowerCase()
+    )
+  })
+  return !usuario
+}
+
 }
 
 module.exports = AuthService;

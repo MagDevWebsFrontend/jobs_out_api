@@ -20,7 +20,13 @@ const ConfiguracionUsuario = sequelize.define('ConfiguracionUsuario', {
   updated_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
-  }
+  },
+  telegram_chat_id: {
+  type: DataTypes.STRING,
+  allowNull: true,
+  unique: true
+}
+
 }, {
   tableName: 'configuraciones_usuario',
   timestamps: false,
