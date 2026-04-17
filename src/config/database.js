@@ -1,8 +1,8 @@
- 
-// En src/config/database.js (actualiza si ya existe)
 require('dotenv').config();
 
-const config = {
+const env = process.env.NODE_ENV || 'development';
+
+const configByEnv = {
   development: {
     username: process.env.DB_DEV_USER,
     password: process.env.DB_DEV_PASS,
@@ -13,18 +13,6 @@ const config = {
     logging: (msg) => console.log(`📊 Sequelize: ${msg}`),
     dialectOptions: {
       ssl: process.env.DB_DEV_SSL === 'true' ? { rejectUnauthorized: false } : false
-    },
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    },
-    define: {
-      timestamps: true,           // Agrega createdAt y updatedAt automáticamente
-      underscored: true,          // Convierte camelCase a snake_case
-      paranoid: true,             // Agrega deletedAt para soft deletes
-      freezeTableName: true       // Previene pluralización de nombres de tablas
     }
   },
   test: {
@@ -49,28 +37,20 @@ const config = {
     logging: false,
     dialectOptions: {
       ssl: process.env.DB_PROD_SSL === 'true' ? { rejectUnauthorized: false } : false
-    },
-    pool: {
-      max: 10,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
     }
   }
 };
 
-// Determinar entorno actual
-const env = process.env.NODE_ENV || 'development';
-const currentConfig = config[env];
+const dbConfig = configByEnv[env];
 
 console.log('🔌 =================================');
-console.log(`   Cargando configuración de BD`);
+console.log('   Cargando configuración de BD');
 console.log('   =================================');
 console.log(`   🌍 Entorno: ${env}`);
-console.log(`   📊 Base de datos: ${currentConfig.database}`);
-console.log(`   🏠 Host: ${currentConfig.host}:${currentConfig.port}`);
-console.log(`   👤 Usuario: ${currentConfig.username}`);
-console.log(`   🔐 SSL: ${currentConfig.dialectOptions?.ssl ? 'Activado' : 'Desactivado'}`);
+console.log(`   📊 Base de datos: ${dbConfig.database}`);
+console.log(`   🏠 Host: ${dbConfig.host}:${dbConfig.port}`);
+console.log(`   👤 Usuario: ${dbConfig.username}`);
+console.log(`   🔐 SSL: ${dbConfig.dialectOptions?.ssl ? 'Activado' : 'Desactivado'}`);
 console.log('   =================================');
 
-module.exports = currentConfig;
+module.exports = dbConfig;

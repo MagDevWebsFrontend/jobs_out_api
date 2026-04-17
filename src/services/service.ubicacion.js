@@ -160,8 +160,50 @@ class UbicacionService {
       throw error;
     }
   }
+
+  /**
+ * @description Eliminar provincia
+ * @param {string} provinciaId
+ */
+static async deleteProvincia(provinciaId) {
+  const provincia = await Provincia.findByPk(provinciaId);
+
+  if (!provincia) {
+    throw AppError.notFound('Provincia no encontrada');
+  }
+
+  // Si hay municipios asociados, evita borrar
+  const municipiosCount = await Municipio.count({
+    where: { provincia_id: provinciaId }
+  });
+
+  if (municipiosCount > 0) {
+    throw AppError.conflict(
+      'No se puede eliminar una provincia con municipios asociados'
+    );
+  }
+
+  await provincia.destroy();
 }
 
+/**
+ * @description Eliminar municipio
+ * @param {string} municipioId
+ */
+static async deleteMunicipio(municipioId) {
+  const municipio = await Municipio.findByPk(municipioId);
+
+  if (!municipio) {
+    throw AppError.notFound('Municipio no encontrado');
+  }
+
+  await municipio.destroy();
+}
+
+}
+
+
+//delete
 
 
 module.exports = UbicacionService;

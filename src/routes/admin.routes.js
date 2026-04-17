@@ -10,7 +10,6 @@ router.post(
   '/notifications',
   authenticate,
   authorize('admin'),
-  dbContext,
   adminNotificationController.sendBroadcast
 );
 

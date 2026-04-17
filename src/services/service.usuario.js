@@ -105,65 +105,104 @@ class UsuarioService {
    * @param {Object} currentUser - Usuario actual que realiza la acción
    * @returns {Promise<Object>} Usuario actualizado
    */
-  static async updateUser(userId, updateData, currentUser) {
-    try {
-      const usuario = await Usuario.findByPk(userId);
-      if (!usuario) {
-        throw AppError.notFound('Usuario no encontrado');
-      }
-
-      // Verificar permisos
-      if (currentUser.id !== userId && currentUser.rol !== 'admin') {
-        throw AppError.forbidden('No puedes modificar este usuario');
-      }
-
-      // Si un no-admin intenta cambiar el rol, no permitirlo
-      if (updateData.rol && currentUser.rol !== 'admin') {
-        delete updateData.rol;
-      }
-
-      // Si se está actualizando el email, verificar que no exista
-      if (updateData.email) {
-        const existingEmail = await Usuario.findOne({
-          where: { 
-            email: updateData.email,
-            id: { [Op.ne]: userId }
-          }
-        });
-
-        if (existingEmail) {
-          throw AppError.conflict('El email ya está registrado');
-        }
-      }
-
-      // Si se está actualizando el username, verificar que no exista
-      if (updateData.username) {
-        const existingUsername = await Usuario.findOne({
-          where: { 
-            username: updateData.username,
-            id: { $ne: userId }
-          }
-        });
-
-        if (existingUsername) {
-          throw AppError.conflict('El nombre de usuario ya está en uso');
-        }
-      }
-
-      await usuario.update(updateData);
-
-      // Remover password_hash de la respuesta
-      const userResponse = usuario.toJSON();
-      delete userResponse.password_hash;
-
-      return userResponse;
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        throw AppError.validationError(error.errors.map(e => e.message).join(', '));
-      }
-      throw error;
+static async updateUser(userId, updateData, currentUser) {
+  try {
+    const usuario = await Usuario.findByPk(userId);
+    if (!usuario) {
+      throw AppError.notFound('Usuario no encontrado');
     }
+
+    // =========================
+    // PERMISOS
+    // =========================
+    if (currentUser.id !== userId && currentUser.rol !== 'admin') {
+      throw AppError.forbidden('No puedes modificar este usuario');
+    }
+
+    // =========================
+    // WHITELIST CAMPOS
+    // =========================
+    const allowedFields = [
+      'nombre',
+      'apellidos',
+      'email',
+      'telefono_e164',
+      'municipio_id',
+      'avatar_url'
+    ];
+
+    const filteredData = {};
+
+    for (const key of allowedFields) {
+      if (updateData[key] !== undefined) {
+        filteredData[key] = updateData[key];
+      }
+    }
+
+    // =========================
+    // VALIDAR MUNICIPIO
+    // =========================
+    if (filteredData.municipio_id) {
+      const municipio = await Municipio.findByPk(filteredData.municipio_id);
+      if (!municipio) {
+        throw AppError.badRequest('Municipio inválido');
+      }
+    }
+
+    // =========================
+    // VALIDAR EMAIL
+    // =========================
+    if (filteredData.email) {
+      const existingEmail = await Usuario.findOne({
+        where: { 
+          email: filteredData.email,
+          id: { [Op.ne]: userId }
+        }
+      });
+
+      if (existingEmail) {
+        throw AppError.conflict('El email ya está registrado');
+      }
+    }
+
+    // =========================
+    // VALIDAR USERNAME (opcional)
+    // =========================
+    if (filteredData.username) {
+      const existingUsername = await Usuario.findOne({
+        where: { 
+          username: filteredData.username,
+          id: { [Op.ne]: userId }
+        }
+      });
+
+      if (existingUsername) {
+        throw AppError.conflict('El nombre de usuario ya está en uso');
+      }
+    }
+
+    // =========================
+    // UPDATE
+    // =========================
+    await usuario.update(filteredData);
+
+    // =========================
+    // RESPONSE CLEAN
+    // =========================
+    const userResponse = usuario.toJSON();
+    delete userResponse.password_hash;
+
+    return userResponse;
+
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      throw AppError.validationError(
+        error.errors.map(e => e.message).join(', ')
+      );
+    }
+    throw error;
   }
+}
 
   /**
    * @description Eliminar usuario (soft delete)

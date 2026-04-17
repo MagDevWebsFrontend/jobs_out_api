@@ -2,58 +2,64 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 
-/**
- * Raíz real de uploads (coincide con express.static)
- * Express sirve: /uploads  →  src/public/uploads
- */
-const UPLOAD_ROOT = process.env.UPLOAD_PATH
-  || path.join(process.cwd(), 'src', 'public', 'uploads')
+const UPLOAD_ROOT = path.join(process.cwd(), 'public', 'uploads')
 
-const MAX_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880', 10) // 5MB
-const ALLOWED = (process.env.ALLOWED_FILE_TYPES
-  || 'image/jpeg,image/png,image/gif,image/webp'
+const MAX_SIZE = parseInt(process.env.MAX_FILE_SIZE || '5242880', 10)
+
+const ALLOWED = (
+  process.env.ALLOWED_FILE_TYPES ||
+  'image/jpeg,image/png,image/gif,image/webp'
 ).split(',')
 
-/**
- * STORAGE
- * Guarda en:
- * src/public/uploads/publicaciones/<trabajoId>/
- */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const trabajoId = req.params.trabajoId
+    try {
+      let dir = ''
 
-    if (!trabajoId) {
-      return cb(new Error('trabajoId requerido en la ruta'), null)
+      // 📸 PUBLICACIONES
+      if (req.params.trabajoId) {
+        dir = path.join(UPLOAD_ROOT, 'publicaciones', req.params.trabajoId)
+      }
+
+      // 👤 AVATAR
+      else if (req.originalUrl.includes('/avatar')) {
+        if (!req.user?.id) {
+          return cb(new Error('Usuario no autenticado'), null)
+        }
+
+        dir = path.join(UPLOAD_ROOT, 'avatars', req.user.id)
+      }
+
+      else {
+        return cb(new Error('Ruta de upload no válida'), null)
+      }
+
+      // crear carpeta SIEMPRE
+      fs.mkdirSync(dir, { recursive: true })
+
+      console.log('📁 Upload dir:', dir)
+
+      cb(null, dir)
+
+    } catch (err) {
+      cb(err, null)
     }
-
-    const dir = path.join(
-      UPLOAD_ROOT,
-      'publicaciones',
-      trabajoId
-    )
-
-    fs.mkdirSync(dir, { recursive: true })
-    cb(null, dir)
   },
 
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase()
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2)}`
     cb(null, `${unique}${ext}`)
   }
 })
 
-/**
- * FILTRO DE ARCHIVOS
- */
 const fileFilter = (req, file, cb) => {
-  if (!file.mimetype || !file.mimetype.startsWith('image/')) {
-    return cb(new Error('El archivo no es una imagen válida'), false)
+  if (!file.mimetype?.startsWith('image/')) {
+    return cb(new Error('Archivo no es imagen'), false)
   }
 
-  // Segunda capa de seguridad (mimetype + extensión)
   const ext = path.extname(file.originalname).toLowerCase().replace('.', '')
+
   if (!ALLOWED.includes(file.mimetype) && !ALLOWED.includes(`image/${ext}`)) {
     return cb(new Error('Tipo de imagen no permitido'), false)
   }
@@ -61,13 +67,8 @@ const fileFilter = (req, file, cb) => {
   cb(null, true)
 }
 
-/**
- * EXPORT
- */
-const upload = multer({
+module.exports = multer({
   storage,
   limits: { fileSize: MAX_SIZE },
   fileFilter
 })
-
-module.exports = upload

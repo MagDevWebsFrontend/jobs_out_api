@@ -1,22 +1,25 @@
-// En src/models/connection.js
 const { Sequelize } = require('sequelize');
-const config = require('../config/database');
+const dbConfig = require('../config/database');
 
 const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
   {
-    host: config.host,
-    port: config.port,
-    dialect: config.dialect,
-    logging: false,
-    dialectOptions: config.dialectOptions,
-    pool: config.pool,
+    host: dbConfig.host,
+    port: dbConfig.port,
+    dialect: dbConfig.dialect,
+    logging: dbConfig.logging,
+    dialectOptions: dbConfig.dialectOptions,
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    },
     define: {
-      timestamps: false,
+      timestamps: true,
       underscored: true,
-      paranoid: false,
       freezeTableName: true
     }
   }

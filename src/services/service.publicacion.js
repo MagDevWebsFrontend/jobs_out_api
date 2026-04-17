@@ -266,7 +266,12 @@ class PublicacionService {
     try {
       logger.info(`Obteniendo publicaciones del usuario: ${userId}`);
       
-      const where = { autor_id: userId };
+      const where = {
+        autor_id: userId,
+        estado: {
+          [Op.ne]: 'archivado'
+        }
+      };
       const include = [
         {
           model: Trabajo,

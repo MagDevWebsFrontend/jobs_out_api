@@ -9,11 +9,10 @@ module.exports = async function dbContext(req, res, next) {
 
   try {
     await sequelize.query(
-      `
-      SELECT establecer_contexto_usuario(
-        :usuario_id,
-        :ip,
-        :user_agent
+        `SELECT establecer_contexto_usuario(
+        :usuario_id::uuid,
+        :ip::text,
+        :user_agent::text
       )
       `,
       {

@@ -1,8 +1,8 @@
 // En src/services/service.auth.js
 const JWTUtil = require('../utils/jwt');
 const BcryptUtil = require('../utils/bcrypt');
-const { Usuario, sequelize } = require('../models');
 const AppError = require('../errors/AppError');
+const { Usuario, sequelize, ConfiguracionUsuario, Municipio } = require('../models');
 
 class AuthService {
   /**
@@ -11,57 +11,111 @@ class AuthService {
    * @returns {Promise<Object>} Usuario creado y tokens
    */
   static async register(userData) {
-    try {
-      // Verificar si el username ya existe
-      const existingUser = await Usuario.findOne({
-        where: { username: userData.username }
-      });
+  try {
+    // =========================
+    // NORMALIZAR INPUT
+    // =========================
+    const {
+      nombre,
+      username,
+      email,
+      password,
+      telefono_e164,
+      municipio_id
+    } = userData;
 
-      if (existingUser) {
-        throw AppError.conflict('El nombre de usuario ya está en uso');
-      }
-
-      // Verificar si el email ya existe (si se proporciona)
-      if (userData.email) {
-        const existingEmail = await Usuario.findOne({
-          where: { email: userData.email }
-        });
-
-        if (existingEmail) {
-          throw AppError.conflict('El email ya está registrado');
-        }
-      }
-
-      // Crear usuario (el hook se encargará de hashear la contraseña)
-      const usuario = await Usuario.create(userData);
-
-      // Generar tokens
-      const token = JWTUtil.generateToken({
-        id: usuario.id,
-        username: usuario.username,
-        rol: usuario.rol
-      });
-
-      const refreshToken = JWTUtil.generateRefreshToken({
-        id: usuario.id
-      });
-
-      // Remover password_hash de la respuesta
-      const userResponse = usuario.toJSON();
-      delete userResponse.password_hash;
-
-      return {
-        user: userResponse,
-        token,
-        refreshToken
-      };
-    } catch (error) {
-      if (error.name === 'SequelizeValidationError') {
-        throw AppError.validationError(error.errors.map(e => e.message).join(', '));
-      }
-      throw error;
+    if (!password) {
+      throw AppError.badRequest('La contraseña es obligatoria');
     }
+
+    // =========================
+    // VALIDAR MUNICIPIO
+    // =========================
+    if (municipio_id) {
+      const municipio = await Municipio.findByPk(municipio_id);
+      if (!municipio) {
+        throw AppError.badRequest('Municipio inválido');
+      }
+    }
+
+    // =========================
+    // VALIDAR USERNAME
+    // =========================
+    const existingUser = await Usuario.findOne({
+      where: { username }
+    });
+
+    if (existingUser) {
+      throw AppError.conflict('El nombre de usuario ya está en uso');
+    }
+
+    // =========================
+    // VALIDAR EMAIL
+    // =========================
+    if (email) {
+      const existingEmail = await Usuario.findOne({
+        where: { email }
+      });
+
+      if (existingEmail) {
+        throw AppError.conflict('El email ya está registrado');
+      }
+    }
+
+    // =========================
+    // CREAR USUARIO
+    // =========================
+    const usuario = await Usuario.create({
+      nombre,
+      username,
+      email,
+      password_hash: password, // 👈 aquí el hook lo hashea
+      telefono_e164,
+      municipio_id
+    });
+
+    // =========================
+    // CREAR CONFIGURACIÓN
+    // =========================
+    await ConfiguracionUsuario.create({
+      usuario_id: usuario.id,
+      telegram_notif: false
+    });
+
+    // =========================
+    // TOKENS
+    // =========================
+    const token = JWTUtil.generateToken({
+      id: usuario.id,
+      username: usuario.username,
+      rol: usuario.rol
+    });
+
+    const refreshToken = JWTUtil.generateRefreshToken({
+      id: usuario.id
+    });
+
+    // =========================
+    // RESPONSE CLEAN
+    // =========================
+    const userResponse = usuario.toJSON();
+    delete userResponse.password_hash;
+
+    return {
+      user: userResponse,
+      token,
+      refreshToken
+    };
+
+  } catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      throw AppError.validationError(
+        error.errors.map(e => e.message).join(', ')
+      );
+    }
+    throw error;
   }
+}
 
   /**
    * @description Iniciar sesión
@@ -72,9 +126,7 @@ class AuthService {
   static async login(identifier, password) {
     try {
       // Buscar usuario por username (case-insensitive)
-      const usuario = await Usuario.findOne({
-        where: { username: identifier }
-      });
+      const usuario = await Usuario.findByUsernameOrEmail(identifier);
 
       if (!usuario) {
         throw AppError.unauthorized('Credenciales incorrectas');
