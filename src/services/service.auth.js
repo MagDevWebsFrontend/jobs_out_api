@@ -240,7 +240,7 @@ class AuthService {
       // Verificar contraseña actual
       const isValid = await usuario.verifyPassword(currentPassword);
       if (!isValid) {
-        throw AppError.unauthorized('Contraseña actual incorrecta');
+        throw AppError.badRequest('Contraseña actual incorrecta');
       }
 
       // Actualizar contraseña (el hook se encargará de hashearla)

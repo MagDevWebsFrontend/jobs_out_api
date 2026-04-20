@@ -1,6 +1,7 @@
 // En server.js (verificar)
 require('dotenv').config();
 const app = require('./src/app');
+const dbConfig = require('./src/config/database');
 const { testConnection } = require('./src/models');
 
 const PORT = process.env.PORT || 4000;
@@ -24,7 +25,7 @@ const startServer = async () => {
     }
     
     console.log('✅ Conexión a PostgreSQL establecida');
-    
+
     // Iniciar servidor
     app.listen(PORT, () => {
       console.log('\n🎉 =================================');
@@ -32,7 +33,7 @@ const startServer = async () => {
       console.log('   =================================');
       console.log(`   📡 URL: http://localhost:${PORT}`);
       console.log(`   🌍 Entorno: ${process.env.NODE_ENV}`);
-      console.log(`   📊 Base de datos: ${process.env.DB_DEV_NAME}`);
+      console.log(`   📊 Base de datos: ${dbConfig.database}`);
       console.log(`   🔗 Health: http://localhost:${PORT}/api/health`);
       console.log(`   📚 Swagger: http://localhost:${PORT}/api-docs`);
       console.log('   =================================\n');

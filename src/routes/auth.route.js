@@ -169,6 +169,8 @@ router.get('/me', authenticate,dbContext, AuthController.getProfile);
  *     responses:
  *       200:
  *         description: Contraseña cambiada
+ *       400:
+ *         description: Contraseña actual incorrecta
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  */
